@@ -38,3 +38,41 @@ function animate() {
 }
 // executando a função de renderização
 animate();
+
+/**
+ * Escutando os eventos do mouse e da janela.
+ * Eventos de clicar, soltar e mover o mouse
+ * E também o evento de redimensionar a janela
+*/
+function bindCallbacks() {
+    // criando um objeto com todos os callbacks
+    var callbacks = {
+        onResize: function() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        },
+        onMouseDown: function(e) {
+            mousePressed = true;
+            checkIntersection(e);
+        },
+        onMouseMove: function(e) {
+            if (mousePressed) {
+                checkIntersection(e);
+            }
+        },
+        onMouseUp: function() {
+            mousePressed = false;
+        },
+        onSelectStart: function() {
+            return false;
+        }
+    };
+    window.addEventListener('resize', callbacks.onResize, false);
+    window.addEventListener('mousedown', callbacks.onMouseDown, false);
+    window.addEventListener('mousemove', callbacks.onMouseMove, false);
+    window.addEventListener('mouseup', callbacks.onMouseUp, false);
+    renderer.domElement.addEventListener('selectstart', callbacks.onSelectStart, false);
+}
+
+bindCallbacks();
