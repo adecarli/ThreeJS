@@ -5,6 +5,9 @@ var VIEW_ANGLE = 35;
 var ASPECT = WIDTH / HEIGHT;
 var NEAR = 1;
 var FAR = 10000;
+// Variáveis do sistema
+var mousePressed = false;
+var DISPLACEMENT = 0.15;
 
 
 // criando a cena, a câmera e o renderizador WebGL
@@ -74,5 +77,40 @@ function bindCallbacks() {
     window.addEventListener('mouseup', callbacks.onMouseUp, false);
     renderer.domElement.addEventListener('selectstart', callbacks.onSelectStart, false);
 }
-
 bindCallbacks();
+
+/**
+ * Verifica se o clique do mouse ocorreu dentro da área da esfera, ou seja,
+ * se o clique foi na superfície do objeto 3D.
+ * Se foi, executa a função responsável por 'distorcer' a superfície.
+ * 
+ * Para esta verificação, compara as coordenadas do clique com a localização 
+ * do objeto 3D.
+ * 
+ * @param {Evento} e Recebe como parâmetro o objeto do evento disparado
+ */
+ function checkIntersection(e) {
+    var mouseX = e.offsetX || e.clientX;
+    var mouseY = e.offsetY || e.clientY;
+     
+    var vector = new THREE.Vector3(
+        (mouseX / window.innerWidth) * 2 - 1,
+        -(mouseY / window.innerHeight) * 2 + 1,
+        0.5);
+    
+    // é necessário este "unproject".
+    // ele nos dará a direção correta do raio para detecção de colisão
+    // e como estamos usando um novo projector, não afetará visualmente o projetor principal
+    // este apenas nos auxilia com os cálculos
+    projector.unprojectVector(vector, camera);
+    // criar um raio com base na posição atual da câmera
+    // assim sabemos a face que está virada para a câmera no momento
+    var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+    intersects = raycaster.intersectObject(sphere);
+    
+    // se o raio tiver intersecção com a superfície
+    // executa a função para distorcer
+    if (intersects.length) {
+        displaceFace(intersects[0].face, DISPLACEMENT);
+    }
+ }
